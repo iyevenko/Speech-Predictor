@@ -16,7 +16,7 @@
 # [START gae_python3_app]
 from flask import Flask
 from flask_cors import CORS
-
+from flask import jsonify
 
 # If `entrypoint` is not defined in app.yaml, App Engine will look for an app
 # called `app` in `main.py`.
@@ -27,6 +27,13 @@ CORS(app)
 def hello():
     """Return a friendly HTTP greeting."""
     return 'Hello World!'
+
+@app.route('/process_text/<text>')
+def process_text(text):
+    """Return a friendly HTTP greeting."""
+    response = text.upper()
+    print(response)
+    return jsonify(response)
 
 
 if __name__ == '__main__':
