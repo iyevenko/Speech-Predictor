@@ -9,14 +9,17 @@ import {TextService} from './text.service';
 export class AppComponent {
   title = 'client';
   playerName;
+  responseText;
   constructor(private textService: TextService) {
   this.playerName = '';
+  this.responseText = '';
   }
 
   submitText() {
-    console.log("Sent: " + this.playerName);
-    this.textService.submitText(this.playerName).subscribe(response => {
-      console.log("Recieved: " + response);
+    console.log('Sent: ' + this.playerName);
+    this.textService.submitText(this.playerName).subscribe((response: any) => {
+      console.log('Received: ' + response);
+      this.responseText = response.response;
     });
   }
 

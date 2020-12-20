@@ -10,7 +10,7 @@ export class TextService {
   constructor(private http: HttpClient) { }
 
   submitText(text: any) {
-    const url = environment.apiUrl + encodeURIComponent(text);
+    const url = environment.apiUrl + '/rest/process-text/' + encodeURIComponent(text);
     return this.http.get(url);
   }
 
