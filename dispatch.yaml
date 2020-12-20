@@ -1,0 +1,8 @@
+dispatch:
+
+  - url: "*/rest/*"
+    service: backend
+
+  - url: "*/*"
+    service: frontend
+

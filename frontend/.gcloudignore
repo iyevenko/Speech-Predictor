@@ -1,0 +1,7 @@
+# Ignore everything
+*
+!*/
+
+
+# Except the Cloud Function files we want to deploy
+!/dist/**

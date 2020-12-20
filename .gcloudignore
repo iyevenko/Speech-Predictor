@@ -1,0 +1,9 @@
+# Ignore everything
+*
+!*/
+
+
+# Except the Cloud Function files we want to deploy
+!/frontend/dist/**
+!/backend/main.py
+!/backend/requirements.txt
