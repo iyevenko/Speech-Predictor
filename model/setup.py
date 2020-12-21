@@ -5,7 +5,7 @@ from setuptools import setup
 #     requirements = f.readlines()
 #
 # REQUIRED_PACKAGES = [x.strip() for x in requirements]
-REQUIRED_PACKAGES = ['tensorflow-gpu==2.3.0', 'numpy==1.18.5']
+REQUIRED_PACKAGES = []
 
 setup(
     name='trainer',

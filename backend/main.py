@@ -1,10 +1,12 @@
 # [START gae_python38_app]
 # [START gae_python3_app]
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
 
 # If `entrypoint` is not defined in dispatch.yaml, App Engine will look for an app
 # called `app` in `main.py`.
+import predict
+
 app = Flask(__name__)
 CORS(app)
 
@@ -20,6 +22,16 @@ def process_text(text):
     print(response)
     return {
         'response': response
+    }
+
+@app.route('/rest/review-sentiment/')
+def review_sentiment():
+    """Return a friendly HTTP greeting."""
+    response, value = predict.get_sentiment(request.headers['text'])
+    print(response)
+    return {
+        'response': response,
+        'value': value
     }
 
 

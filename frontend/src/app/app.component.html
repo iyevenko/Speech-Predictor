@@ -1,9 +1,10 @@
 <mat-toolbar>
-  <span>Speech Predictor</span>
+  <span>Movie Review Sentiment</span>
 </mat-toolbar>
-<div>
-<h1>Enter text</h1>
-<input [(ngModel)]="playerName">
+<div class="container">
+<h1 class="title">Enter review</h1>
+<textarea [(ngModel)]="searchStr" (ngModelChange)="modelChange($event)" size="200" class="input"></textarea>
 <button (click)="submitText()">Submit</button>
-<h2>{{responseText}}</h2>
+<h2 class="title">{{responseText}}</h2>
 </div>
+
