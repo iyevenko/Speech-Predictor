@@ -49,4 +49,13 @@ Thumbs.db
 
 # Virtual Environment
 /backend/venv
+/model/venv
 venv/pyvenv.cfg
+
+# Model
+/model/.idea
+/model/saved_models
+/model/build
+/model/dist
+/model/trainer.egg-info
+/model/trainer/__pycache__
