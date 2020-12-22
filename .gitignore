@@ -44,6 +44,7 @@ testem.log
 /typings
 /backend/__pycache__
 /frontend/dist/
+/ANC_training_data
 
 # System Files
 .DS_Store

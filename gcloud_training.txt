@@ -1,1 +1,5 @@
-gcloud ai-platform jobs submit training imdb_model_2 --package-path trainer/ --module-name trainer.task --region us-east1 --python-version 3.7 --runtime-version 2.3 --job-dir gs://speech-predictor-bucket/keras-job-dir --stream-logs --scale-tier=BASIC_GPU
+gcloud ai-platform jobs submit training imdb_model_3 --package-path trainer/ --module-name trainer.task --region us-east1 --python-version 3.7 --runtime-version 2.3 --job-dir gs://speech-predictor-bucket/keras-job-dir --stream-logs --scale-tier=BASIC
+
+gs://speech-predictor-bucket/keras-job-dir/keras_export
+
+gcloud ai-platform versions create v1 --model imdb_predict --runtime-version 2.3 --python-version 3.8 --framework tensorflow --origin gs://speech-predictor-bucket/keras-job-dir/keras_export
