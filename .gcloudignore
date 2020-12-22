@@ -5,5 +5,5 @@
 
 # Except the Cloud Function files we want to deploy
 !/frontend/dist/**
-!/backend/main.py
+!/backend/*.py
 !/backend/requirements.txt
