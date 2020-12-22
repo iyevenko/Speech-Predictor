@@ -1,10 +1,34 @@
-<mat-toolbar>
-  <span>Movie Review Sentiment</span>
-</mat-toolbar>
-<div class="container">
-<h1 class="title">Enter review</h1>
-<textarea [(ngModel)]="searchStr" (ngModelChange)="modelChange($event)" size="200" class="input"></textarea>
-<button (click)="submitText()">Submit</button>
-<h2 class="title">{{responseText}}</h2>
+<!--<mat-toolbar>-->
+<!--  <span>Movie Review Sentiment</span>-->
+<!--</mat-toolbar>-->
+
+<body style="background-color:#0a0b32;">
+
+<div class="container" style="text-align: center; position:relative; top:30%;">
+
+  <form class="example-form" (submit)="submitText()">
+    <mat-form-field class="example-full-width">
+      <mat-label></mat-label>
+      <input matInput autofocus
+             #textInput
+             autocomplete="off"
+             name="textInput"
+             [(ngModel)]="searchStr"
+             (ngModelChange)="modelChange($event)"
+             id="textInput"
+             placeholder="Enter review here..."
+             style="
+              /*width: 100%;*/
+              height: 70px;
+              font-size:50px;
+              /*vertical-align:9px;*/
+              color:#bbb" >
+
+    </mat-form-field>
+  </form>
+
+  <h2 class="title" style="color: bisque">{{responseText}}</h2>
+
 </div>
 
+</body>

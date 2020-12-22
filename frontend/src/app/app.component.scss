@@ -1,7 +1,24 @@
-.title {
-  margin: 10px;
+
+
+
+
+
+
+.mat-input-element::placeholder {
+  color: #797979;
 }
 
-.input {
-  margin: 10px;
+::ng-deep .mat-form-field-underline{
+  display: none;
+}
+.mat-input-element {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+
+}
+
+.mat-form-field {
+  width: 90%;
 }
