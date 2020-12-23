@@ -53,6 +53,7 @@ Thumbs.db
 # Virtual Environment
 /backend/venv
 /model/venv
+/model/venv3.7
 venv/pyvenv.cfg
 
 # Model
@@ -62,6 +63,7 @@ venv/pyvenv.cfg
 /model/dist
 /model/trainer.egg-info
 /model/trainer/__pycache__
+\model\bert_en_uncased_preprocess_2.tar.gz
 
 # GCLOUD auth
 /Speech Predictor-a054d4db5829.json
