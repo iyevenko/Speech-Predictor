@@ -13,5 +13,5 @@ setup(
     install_requires=REQUIRED_PACKAGES,
     packages=find_packages(),
     include_package_data=True,
-    description='IMDB Reviews Model training application package.'
+    description='Next Word Model training application package.'
 )

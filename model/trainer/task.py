@@ -5,9 +5,10 @@ from __future__ import print_function
 import argparse
 import os
 
-from trainer.model import input_fn, create_keras_model
-
 import tensorflow as tf
+
+from trainer.dataset import input_fn
+from trainer.model import LSTMModel
 
 
 def get_args():
@@ -57,21 +58,19 @@ def train_and_evaluate(args):
       args: dictionary of arguments - see get_args() for details
     """
 
-    train_dataset = input_fn(args.batch_size)
+    train_dataset, tokenizer = input_fn(buffer_size=3, batch_size=16,
+                                        data_path=os.path.join('..', 'ANC_training_data'),
+                                        min_sentence_length=5, dataset_fraction=0.1, vocabulary_size=5000)
 
-    VOCAB_SIZE = 1000
-    encoder = tf.keras.layers.experimental.preprocessing.TextVectorization(
-        max_tokens=VOCAB_SIZE)
-    encoder.adapt(train_dataset.map(lambda text, label: text))
+    keras_model = LSTMModel(tokenizer)
 
-    keras_model = create_keras_model(encoder)
+    keras_model.compile(optimizer='adam', loss=keras_model.loss)
 
     keras_model.fit(train_dataset, epochs=args.num_epochs)
 
     export_path = os.path.join(args.job_dir, 'keras_export')
     tf.keras.models.save_model(keras_model, export_path)
     print('Model exported to: {}'.format(export_path))
-
 
 
 if __name__ == '__main__':
