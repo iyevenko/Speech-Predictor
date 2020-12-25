@@ -10,19 +10,19 @@ class LSTMModel(tf.keras.Model):
         self.beta = beta
         self.tokenizer = tokenizer
         self.vocab_size = len(tokenizer.get_vocabulary())
-        self.embedding = tf.keras.layers.Embedding(input_dim=self.vocab_size, output_dim=128)
+        self.embedding = tf.keras.layers.Embedding(input_dim=self.vocab_size, output_dim=128, mask_zero=True)
         self.lstm = tf.keras.layers.LSTM(128, return_sequences=False)
         self.dense = tf.keras.layers.Dense(128, activation='relu')
         self.softmax = tf.keras.layers.Dense(self.vocab_size, activation='softmax')
 
     def loss(self, y_true, y_pred):
-        true_token = self.tokenizer(y_true)
-        true_token = tf.squeeze(true_token, axis=-1)
         scce = tf.keras.losses.SparseCategoricalCrossentropy()
-        scce_loss = scce(true_token, y_pred)
+        scce_loss = scce(y_true, y_pred)
+
         pred_token = tf.math.argmax(y_pred, axis=-1)
-        true_embed = self.embedding(true_token)
         pred_embed = self.embedding(pred_token)
+        true_embed = self.embedding(y_true)
+
         recon_loss = tf.keras.losses.mse(true_embed, pred_embed)
         recon_loss = tf.reduce_sum(recon_loss)
         self.add_metric(scce_loss, name='Cross Entropy')
@@ -30,17 +30,11 @@ class LSTMModel(tf.keras.Model):
         return self.alpha*scce_loss + self.beta*recon_loss
 
     def call(self, inputs, training=None, mask=None):
-        # inputs: str
         tokens = self.tokenizer(inputs)
-        # tokens => (num_words,)
         embeddings = self.embedding(tokens)
-        # embeddings => (num_words, 128)
         X = self.lstm(embeddings)
-        # X => (128,)
         X = self.dense(X)
-        # X => (128,)
         X = self.softmax(X)
-        # X => (size.vocab_size,)
         return X
 
 

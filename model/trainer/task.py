@@ -40,6 +40,11 @@ def get_args():
         default=1000,
         help='maximum number of words in encoder vocabulary, default=1000')
     parser.add_argument(
+        '--buffer-size',
+        type=int,
+        default=5,
+        help='maximum number of words in encoder vocabulary, default=1000')
+    parser.add_argument(
         '--verbosity',
         choices=['DEBUG', 'ERROR', 'FATAL', 'INFO', 'WARN'],
         default='INFO')
@@ -58,18 +63,23 @@ def train_and_evaluate(args):
       args: dictionary of arguments - see get_args() for details
     """
 
-    train_dataset, tokenizer = input_fn(buffer_size=3, batch_size=16,
-                                        data_path=os.path.join('..', 'ANC_training_data'),
-                                        min_sentence_length=5, dataset_fraction=0.1, vocabulary_size=5000)
+    train_dataset, tokenizer = input_fn(buffer_size=args.buffer_size, batch_size=args.batch_size,
+                                        data_path=os.path.join('..', '..', 'ANC_training_data'),
+                                        min_sentence_length=10, dataset_fraction=0.01, vocabulary_size=args.vocab_size)
 
-    keras_model = LSTMModel(tokenizer)
+    lstm_model = LSTMModel(tokenizer)
 
-    keras_model.compile(optimizer='adam', loss=keras_model.loss)
+    # for x, y in train_dataset.__iter__():
+    #     print(lstm_model.loss(y, lstm_model(x)))
+    #     break
 
-    keras_model.fit(train_dataset, epochs=args.num_epochs)
+    #
+    lstm_model.compile(optimizer='adam', loss=lstm_model.loss)
 
-    export_path = os.path.join(args.job_dir, 'keras_export')
-    tf.keras.models.save_model(keras_model, export_path)
+    lstm_model.fit(train_dataset, epochs=args.num_epochs)
+
+    export_path = os.path.join(args.job_dir, 'predict_lstm')
+    tf.keras.models.save_model(lstm_model, export_path)
     print('Model exported to: {}'.format(export_path))
 
 
