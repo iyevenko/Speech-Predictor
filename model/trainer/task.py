@@ -65,9 +65,9 @@ def train_and_evaluate(args):
 
     train_dataset, tokenizer = input_fn(buffer_size=args.buffer_size, batch_size=args.batch_size,
                                         data_path=os.path.join('..', '..', 'ANC_training_data'),
-                                        min_sentence_length=10, dataset_fraction=0.01, vocabulary_size=args.vocab_size)
+                                        min_sentence_length=10, dataset_fraction=0.1, vocabulary_size=args.vocab_size)
 
-    lstm_model = LSTMModel(tokenizer)
+    lstm_model = LSTMModel(tokenizer, alpha=0.1, beta=0.5)
 
     # for x, y in train_dataset.__iter__():
     #     print(lstm_model.loss(y, lstm_model(x)))
