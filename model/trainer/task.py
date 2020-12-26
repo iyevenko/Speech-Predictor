@@ -37,6 +37,11 @@ def get_args():
         type=int,
         help='number of records to read during each training step, default=128')
     parser.add_argument(
+        '--batch-num',
+        default=5000,
+        type=int,
+        help='number of batches to generate from the dataset: steps = 0.8 * batch_num, default=5000')
+    parser.add_argument(
         '--vocab-size',
         type=int,
         default=1000,
@@ -45,7 +50,7 @@ def get_args():
         '--buffer-size',
         type=int,
         default=5,
-        help='maximum number of words in encoder vocabulary, default=1000')
+        help='number of words to predict from, default=5')
     parser.add_argument(
         '--verbosity',
         choices=['DEBUG', 'ERROR', 'FATAL', 'INFO', 'WARN'],
@@ -67,7 +72,7 @@ def train_and_evaluate(args):
 
     data_splits, tokenizer = input_fn(buffer_size=args.buffer_size, batch_size=args.batch_size,
                                         data_path=os.path.join('..', '..', 'ANC_training_data'),
-                                        min_sentence_length=10, dataset_fraction=0.1, vocabulary_size=args.vocab_size)
+                                        min_sentence_length=10, num_batches=5000, vocabulary_size=args.vocab_size)
 
     train_dataset = data_splits['train']
     val_dataset = data_splits['val']
@@ -79,10 +84,10 @@ def train_and_evaluate(args):
     #     print(lstm_model.loss(y, lstm_model(x)))
     #     break
 
-    lstm_model.compile(optimizer='adam', loss=lstm_model.loss)
+    lstm_model.compile(optimizer='adam', loss=lstm_model.loss, metrics=[tf.keras.metrics.CategoricalAccuracy()])
 
     log_dir = os.path.join('..', 'logs', 'fit', datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, update_freq=500, embeddings_freq=0)
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, update_freq=1000, profile_batch=0)
 
     lstm_model.fit(train_dataset, epochs=args.num_epochs, validation_data=val_dataset, callbacks=[tensorboard_callback])
 

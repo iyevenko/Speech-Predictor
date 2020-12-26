@@ -7,7 +7,7 @@ import tensorflow as tf
 import tensorflow_hub as hub
 
 
-def input_fn(buffer_size=3, batch_size=16, data_path='.', min_sentence_length=5, dataset_fraction=1,
+def input_fn(buffer_size=5, batch_size=64, data_path='.', min_sentence_length=5, num_batches=5000,
              vocabulary_size=10000):
     """
     :param buffer_size: maximum number of words used to predict next word
@@ -20,9 +20,6 @@ def input_fn(buffer_size=3, batch_size=16, data_path='.', min_sentence_length=5,
     """
     text_files = os.listdir(data_path)
     text_files = [os.path.join(data_path, f) for f in text_files]
-    num_files = len(text_files)
-    random.shuffle(text_files)
-    text_files = text_files[:int(num_files * dataset_fraction)]
 
     texts = tf.data.TextLineDataset(text_files)
     tokenizer = tf.keras.layers.experimental.preprocessing.TextVectorization(max_tokens=vocabulary_size, output_sequence_length=buffer_size)
@@ -50,27 +47,26 @@ def input_fn(buffer_size=3, batch_size=16, data_path='.', min_sentence_length=5,
                 print(e)
 
     dataset = tf.data.Dataset.from_generator(generator, output_types=(tf.string, tf.int32), output_shapes=((1, ), (1, )))
-    dataset = dataset.shuffle(5000).batch(batch_size)
+    dataset = dataset.shuffle(1000).batch(batch_size, drop_remainder=True)
 
     # dataset_len = 0
     #     # print('counting dataset length')
     #     # for _ in dataset.as_numpy_iterator():
     #     #     dataset_len += 1
-    dataset_len = 1000*batch_size
+    # Rough length of dataset for 1% of dataset
 
-    train_size = int(0.8 * dataset_len)
-    val_size = int(0.1 * dataset_len)
-    test_size = int(0.1 * dataset_len)
+    train_size = int(0.8 * num_batches)
+    val_size = int(0.1 * num_batches)
+    test_size = int(0.1 * num_batches)
 
     train_dataset = dataset.take(train_size)
-    not_train_dataset = dataset.skip(train_size)
-    val_dataset = not_train_dataset.take(val_size)
-    test_dataset = not_train_dataset.skip(val_size)
+    test_dataset = dataset.skip(train_size)
+    val_dataset = test_dataset.skip(test_size).take(val_size)
     test_dataset = test_dataset.take(test_size)
-
-    # train_dataset = train_dataset
-    # val_dataset = val_dataset
-    # test_dataset = test_dataset
+    #
+    # train_dataset = train_dataset.batch(batch_size, drop_remainder=True)
+    # val_dataset = val_dataset.batch(batch_size, drop_remainder=True)
+    # test_dataset = test_dataset.batch(batch_size, drop_remainder=True)
 
     data_splits = {
         'train': train_dataset,

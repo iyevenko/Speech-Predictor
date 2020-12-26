@@ -2,6 +2,8 @@ import os
 
 import tensorflow as tf
 
+import trainer.dataset
+
 
 class LSTMModel(tf.keras.Model):
     def __init__(self, tokenizer, alpha=0.005, beta=1, *args, **kwargs):
@@ -44,10 +46,6 @@ if __name__ == '__main__':
     pass
     # physical_devices = tf.config.list_physical_devices('GPU')
     # tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
-    #
-    # buffer_size = 3
-    # dataset, tokenizer = input_fn(buffer_size, 16, os.path.join('..', '..', 'ANC_training_data'), 10, 0.02, 5000)
-    #
     # model = LSTMModel(tokenizer)
     # sample_text = "I really hope this works."
     # tokens = model.tokenizer(sample_text)
