@@ -64,6 +64,7 @@ venv/pyvenv.cfg
 /model/trainer.egg-info
 /model/trainer/__pycache__
 \model\bert_en_uncased_preprocess_2.tar.gz
-
+/model/logs
+/predict_lstm
 # GCLOUD auth
 /Speech Predictor-a054d4db5829.json

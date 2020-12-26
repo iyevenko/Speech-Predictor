@@ -50,6 +50,32 @@ def input_fn(buffer_size=3, batch_size=16, data_path='.', min_sentence_length=5,
                 print(e)
 
     dataset = tf.data.Dataset.from_generator(generator, output_types=(tf.string, tf.int32), output_shapes=((1, ), (1, )))
-    dataset = dataset.shuffle(10000).batch(batch_size)
+    dataset = dataset.shuffle(5000).batch(batch_size)
 
-    return dataset, tokenizer
+    # dataset_len = 0
+    #     # print('counting dataset length')
+    #     # for _ in dataset.as_numpy_iterator():
+    #     #     dataset_len += 1
+    dataset_len = 1000*batch_size
+
+    train_size = int(0.8 * dataset_len)
+    val_size = int(0.1 * dataset_len)
+    test_size = int(0.1 * dataset_len)
+
+    train_dataset = dataset.take(train_size)
+    not_train_dataset = dataset.skip(train_size)
+    val_dataset = not_train_dataset.take(val_size)
+    test_dataset = not_train_dataset.skip(val_size)
+    test_dataset = test_dataset.take(test_size)
+
+    # train_dataset = train_dataset
+    # val_dataset = val_dataset
+    # test_dataset = test_dataset
+
+    data_splits = {
+        'train': train_dataset,
+        'val': val_dataset,
+        'test': test_dataset
+    }
+
+    return data_splits, tokenizer
