@@ -68,3 +68,6 @@ venv/pyvenv.cfg
 /predict_lstm
 # GCLOUD auth
 /Speech Predictor-a054d4db5829.json
+model/data/raw_sentences.txt
+model/trainer/raw_sentences.txt
+new_data/raw_sentences.txt
