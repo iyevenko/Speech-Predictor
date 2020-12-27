@@ -12,6 +12,8 @@ import numpy as np
 from trainer.dataset import input_fn
 from trainer.model import LSTMModel
 
+from google.cloud import storage
+
 
 def get_args():
     """Argument parser.
@@ -20,6 +22,13 @@ def get_args():
       Dictionary of arguments.
     """
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--force-cpu',
+        type=bool,
+        required=False,
+        default=False,
+        help='Forces model onto CPU on an NVIDIA GPU, default=False')
+
     parser.add_argument(
         '--job-dir',
         type=str,
@@ -37,7 +46,7 @@ def get_args():
         type=int,
         help='number of records to read during each training step, default=128')
     parser.add_argument(
-        '--batch-num',
+        '--num-batches',
         default=5000,
         type=int,
         help='number of batches to generate from the dataset: steps = 0.8 * batch_num, default=5000')
@@ -55,6 +64,11 @@ def get_args():
         '--verbosity',
         choices=['DEBUG', 'ERROR', 'FATAL', 'INFO', 'WARN'],
         default='INFO')
+    parser.add_argument(
+        '--cloud-data',
+        type=bool,
+        default=True,
+        help='Use data stored in cloud bucket, default=False')
     args, _ = parser.parse_known_args()
     return args
 
@@ -69,24 +83,32 @@ def train_and_evaluate(args):
     Args:
       args: dictionary of arguments - see get_args() for details
     """
+    if args.force_cpu:
+        os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
     data_splits, tokenizer = input_fn(buffer_size=args.buffer_size, batch_size=args.batch_size,
-                                        data_path=os.path.join('..', '..', 'ANC_training_data'),
-                                        min_sentence_length=10, num_batches=5000, vocabulary_size=args.vocab_size)
+                                      data_path='data',
+                                      min_sentence_length=3, num_batches=args.num_batches,
+                                      vocabulary_size=args.vocab_size,
+                                      cloud=args.cloud_data)
 
     train_dataset = data_splits['train']
     val_dataset = data_splits['val']
     test_dataset = data_splits['test']
 
-    lstm_model = LSTMModel(tokenizer, alpha=0.02, beta=1)
+    lstm_model = LSTMModel(tokenizer, alpha=1, beta=0)
+
+    # print(tokenizer.get_vocabulary())
 
     # for x, y in train_dataset.__iter__():
-    #     print(lstm_model.loss(y, lstm_model(x)))
+    #     print(x, y)
+    #     # print(lstm_model.loss(y, lstm_model(x)))
     #     break
 
-    lstm_model.compile(optimizer='adam', loss=lstm_model.loss, metrics=[tf.keras.metrics.CategoricalAccuracy()])
+    lstm_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.01), loss=lstm_model.loss,
+                       metrics=[tf.keras.metrics.CategoricalAccuracy()])
 
-    log_dir = os.path.join('..', 'logs', 'fit', datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    log_dir = os.path.join('gs://speech-predictor-bucket','logs', 'fit', datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, update_freq=1000, profile_batch=0)
 
     lstm_model.fit(train_dataset, epochs=args.num_epochs, validation_data=val_dataset, callbacks=[tensorboard_callback])
@@ -97,16 +119,21 @@ def train_and_evaluate(args):
 
     # lstm_model = tf.keras.models.load_model(export_path, compile=False)
     #
-    # eval_text = ["we like to"]
+    # eval_text = ["the "]
     # prediction = lstm_model.predict(eval_text)
+    # top_5 = tf.math.top_k(prediction, 5)
+    # for t in top_5[1][0]:
+    #     index = tf.get_static_value(t)
+    #     print(eval_text[0] + ' ... ' + lstm_model.tokenizer.get_vocabulary()[index])
+    # # print(top_5[1][0])
     # pred_idx = np.argmax(prediction[:, 2:])
     # prediction = lstm_model.tokenizer.get_vocabulary()[pred_idx+2]
     # x = lstm_model.tokenizer(eval_text)
-    # print(x)
+    # # print(x)
     # x = lstm_model.embedding(x)
-    # print(x)
+    # # print(x)
     # x = lstm_model.lstm(x)
-    # print(x)
+    # # print(x)
     # print(eval_text[0] + ' ... ' + prediction)
 
 

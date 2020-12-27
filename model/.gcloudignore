@@ -1,3 +1,5 @@
 trainer.egg-info/**
 venv/**
 build/**
+logs/**
+preprocess/**

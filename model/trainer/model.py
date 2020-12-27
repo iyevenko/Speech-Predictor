@@ -12,9 +12,10 @@ class LSTMModel(tf.keras.Model):
         self.beta = beta
         self.tokenizer = tokenizer
         self.vocab_size = len(tokenizer.get_vocabulary())
-        self.embedding = tf.keras.layers.Embedding(input_dim=self.vocab_size, output_dim=512, mask_zero=True)
-        self.lstm = tf.keras.layers.LSTM(512, return_sequences=False)
-        self.dense = tf.keras.layers.Dense(512, activation='relu')
+        self.embedding = tf.keras.layers.Embedding(input_dim=self.vocab_size, output_dim=128, mask_zero=True)
+        self.lstm = tf.keras.layers.LSTM(128, return_sequences=True)
+        self.lstm2 = tf.keras.layers.LSTM(128, return_sequences=False)
+        self.dense = tf.keras.layers.Dense(128, activation='relu')
         self.softmax = tf.keras.layers.Dense(self.vocab_size, activation='softmax')
 
     def loss(self, y_true, y_pred):
@@ -35,6 +36,7 @@ class LSTMModel(tf.keras.Model):
         tokens = self.tokenizer(inputs)
         embeddings = self.embedding(tokens)
         X = self.lstm(embeddings)
+        X = self.lstm2(X)
         X = self.dense(X)
         X = self.dense(X)
         X = self.dense(X)

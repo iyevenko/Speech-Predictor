@@ -4,11 +4,10 @@ from collections import deque
 
 import numpy as np
 import tensorflow as tf
-import tensorflow_hub as hub
+from google.cloud import storage
 
-
-def input_fn(buffer_size=5, batch_size=64, data_path='.', min_sentence_length=5, num_batches=5000,
-             vocabulary_size=10000):
+def input_fn(buffer_size=3, batch_size=64, data_path='.', min_sentence_length=5, num_batches=5000,
+             vocabulary_size=1000, cloud=False):
     """
     :param buffer_size: maximum number of words used to predict next word
     :param batch_size:
@@ -18,33 +17,45 @@ def input_fn(buffer_size=5, batch_size=64, data_path='.', min_sentence_length=5,
     :param vocabulary_size: number of words in vocabulary to train model on
     :return: tuple of n previous words, and next word
     """
-    text_files = os.listdir(data_path)
-    text_files = [os.path.join(data_path, f) for f in text_files]
+    text_files = []
 
-    texts = tf.data.TextLineDataset(text_files)
-    tokenizer = tf.keras.layers.experimental.preprocessing.TextVectorization(max_tokens=vocabulary_size, output_sequence_length=buffer_size)
-    tokenizer.adapt(texts)
+    if cloud:
+        # Instantiates a client
+        client = storage.Client()
+        bucket_name = 'speech-predictor-bucket'
+        for blob in client.list_blobs(bucket_name, prefix=data_path):
+            text_files.append(blob.download_as_text())
+        tokenizer_ds = text_files
+    else:
+        data_path = os.path.join('..', data_path)
+        text_files = os.listdir(data_path)
+        text_files = [os.path.join(data_path, f) for f in text_files]
+        tokenizer_ds = tf.data.TextLineDataset(text_files)
+
+    tokenizer = tf.keras.layers.experimental.preprocessing.TextVectorization(max_tokens=vocabulary_size,
+                                                                             output_sequence_length=buffer_size)
+    tokenizer.adapt(tokenizer_ds)
 
     def generator():
         for text_file in text_files:
-            try:
-                with open(text_file, encoding='utf-8') as text:
+            if not cloud:
+                with open(text_file, encoding='utf-8', errors='replace') as text:
                     lines = text.readlines()
-                    for line_str in lines:
-                        word_buffer = deque(maxlen=buffer_size)
-                        line = line_str.split()
-                        if len(line) > min_sentence_length:
-                            word_buffer.append(line[0])
-                            for i in range(1, len(line)):
-                                prev_words = tf.convert_to_tensor([" ".join(word_buffer)])
-                                # keras model doesn't allow string labels
-                                # get rid of padding for labels
-                                next_token = tokenizer([line[i]])[:, 0]
-                                yield prev_words, next_token
-                                word_buffer.append(line[i])
-            except Exception as e:
-                print(f'Failed to open text file {text}')
-                print(e)
+            else:
+                lines = text_file.splitlines()
+
+            for line_str in lines:
+                word_buffer = deque(maxlen=buffer_size)
+                line = line_str.split()
+                if len(line) > min_sentence_length:
+                    word_buffer.append(line[0])
+                    for i in range(1, len(line)):
+                        prev_words = tf.convert_to_tensor([" ".join(word_buffer)])
+                        # keras model doesn't allow string labels
+                        # get rid of padding for labels
+                        next_token = tokenizer([line[i]])[:, 0]
+                        yield prev_words, next_token
+                        word_buffer.append(line[i])
 
     dataset = tf.data.Dataset.from_generator(generator, output_types=(tf.string, tf.int32), output_shapes=((1, ), (1, )))
     dataset = dataset.shuffle(1000).batch(batch_size, drop_remainder=True)
@@ -75,3 +86,27 @@ def input_fn(buffer_size=5, batch_size=64, data_path='.', min_sentence_length=5,
     }
 
     return data_splits, tokenizer
+
+# if __name__ == '__main__':
+#     dataset, tokenizer = input_fn(min_sentence_length=3, data_path='data', num_batches=1000)
+#     counter = 0
+#     print('start')
+#     for data in dataset['train'].__iter__():
+#         # print(data[0])
+#         print(counter)
+#         counter+=1
+#     print(counter)
+#
+#     counter = 0
+#     for data in dataset['val'].__iter__():
+#         # print(data[0])
+#         print(counter)
+#         counter+=1
+#     print(counter)
+#
+#     counter = 0
+#     for data in dataset['test'].__iter__():
+#         # print(data[0])
+#         print(counter)
+#         counter+=1
+#     print(counter)
