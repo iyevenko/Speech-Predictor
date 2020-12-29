@@ -1,12 +1,60 @@
 import os
+import re
 import random
 from collections import deque
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.ops import string_ops
 from google.cloud import storage
 
 def input_fn(buffer_size=3, batch_size=64, data_path='.', min_sentence_length=5, num_batches=5000,
+             vocabulary_size=1000):
+
+    dataset = tf.data.TextLineDataset(data_path)
+
+    tokenizer = tf.keras.layers.experimental.preprocessing.TextVectorization(max_tokens=vocabulary_size,
+                                                                 output_sequence_length=buffer_size)
+    tokenizer.adapt(dataset)
+
+    dataset = dataset.map(tf.strings.strip)
+    dataset = dataset.map(tf.strings.lower)
+    DEFAULT_STRIP_REGEX = r'[!"#$%&()\*\+,-\./:;<=>?@\[\\\]^_`{|}~\']'
+    dataset = dataset.map(lambda s: string_ops.regex_replace(s, DEFAULT_STRIP_REGEX, ""))
+    dataset = dataset.map(tf.strings.split)
+    dataset = dataset.filter(lambda s: tf.shape(s)[0] >= min_sentence_length)
+    prev_words = dataset.map(lambda x: x[:min_sentence_length-1])
+    prev_words = prev_words.map(lambda s: tf.strings.reduce_join(s, separator=" "))
+    next_word = dataset.map(lambda x: x[min_sentence_length-1])
+    next_word = next_word.map(lambda s: tf.expand_dims(s, 0))
+    next_word = next_word.map(lambda s: tokenizer(s)[0, 0])
+    dataset = tf.data.Dataset.zip((prev_words, next_word))
+    dataset = dataset.shuffle(1000).batch(batch_size, drop_remainder=True)
+
+    dataset_length = 0
+    for _ in dataset.__iter__():
+        dataset_length += 1
+    print('done bfb counting')
+
+    train_size = int(0.8 * dataset_length)
+    val_size = int(0.1 * dataset_length)
+    test_size = int(0.1 * dataset_length)
+
+    train_dataset = dataset.take(train_size)
+    test_dataset = dataset.skip(train_size)
+    val_dataset = test_dataset.skip(test_size)
+    test_dataset = test_dataset.take(test_size)
+
+    data_splits = {
+        'train': train_dataset,
+        'val': val_dataset,
+        'test': test_dataset
+    }
+
+    return data_splits, tokenizer
+
+
+def gen_input_fn(buffer_size=3, batch_size=64, data_path='.', min_sentence_length=5, num_batches=5000,
              vocabulary_size=1000, cloud=False):
     """
     :param buffer_size: maximum number of words used to predict next word
@@ -87,7 +135,13 @@ def input_fn(buffer_size=3, batch_size=64, data_path='.', min_sentence_length=5,
 
     return data_splits, tokenizer
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
+    dataset = input_fn(min_sentence_length=5, data_path=os.path.join('..', 'data', 'raw_sentences.txt'))
+    counter = 1
+    for d in dataset.__iter__():
+        print(counter)
+        counter += 1
+
 #     dataset, tokenizer = input_fn(min_sentence_length=3, data_path='data', num_batches=1000)
 #     counter = 0
 #     print('start')

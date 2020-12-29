@@ -65,10 +65,15 @@ def get_args():
         choices=['DEBUG', 'ERROR', 'FATAL', 'INFO', 'WARN'],
         default='INFO')
     parser.add_argument(
-        '--cloud-data',
+        '--data-path',
+        required=True,
+        type=str,
+        help='Path to data')
+    parser.add_argument(
+        '--cloud',
         type=bool,
-        default=True,
-        help='Use data stored in cloud bucket, default=False')
+        default=False,
+        help='Run on cloud')
     args, _ = parser.parse_known_args()
     return args
 
@@ -87,10 +92,9 @@ def train_and_evaluate(args):
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
     data_splits, tokenizer = input_fn(buffer_size=args.buffer_size, batch_size=args.batch_size,
-                                      data_path='data',
+                                      data_path=args.data_path,
                                       min_sentence_length=3, num_batches=args.num_batches,
-                                      vocabulary_size=args.vocab_size,
-                                      cloud=args.cloud_data)
+                                      vocabulary_size=args.vocab_size)
 
     train_dataset = data_splits['train']
     val_dataset = data_splits['val']
@@ -108,10 +112,17 @@ def train_and_evaluate(args):
     lstm_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.01), loss=lstm_model.loss,
                        metrics=[tf.keras.metrics.CategoricalAccuracy()])
 
-    log_dir = os.path.join('gs://speech-predictor-bucket','logs', 'fit', datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, update_freq=1000, profile_batch=0)
+    tensorboard_callback = None
+    cloud = args.cloud
+    # cloud = False
+    if cloud:
+        print('cloud')
+        log_dir = os.path.join('gs://speech-predictor-bucket', 'logs', 'fit', datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, update_freq=1000, profile_batch=0)
+        tensorboard_callback = [tensorboard_callback]
 
-    lstm_model.fit(train_dataset, epochs=args.num_epochs, validation_data=val_dataset, callbacks=[tensorboard_callback])
+    lstm_model.fit(train_dataset, epochs=args.num_epochs, validation_data=val_dataset,
+                   callbacks=tensorboard_callback)
 
     export_path = os.path.join(args.job_dir, 'predict_lstm')
     tf.keras.models.save_model(lstm_model, export_path)
@@ -139,5 +150,6 @@ def train_and_evaluate(args):
 
 if __name__ == '__main__':
     args = get_args()
+    print(args)
     tf.compat.v1.logging.set_verbosity(args.verbosity)
     train_and_evaluate(args)

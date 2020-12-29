@@ -48,7 +48,6 @@ if __name__ == '__main__':
     pass
     # physical_devices = tf.config.list_physical_devices('GPU')
     # tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
-    # model = LSTMModel(tokenizer)
     # sample_text = "I really hope this works."
     # tokens = model.tokenizer(sample_text)
     # # print(tokens)
