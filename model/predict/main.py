@@ -5,6 +5,15 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
+
+@app.before_first_request
+def load_model():
+    global model
+    BUCKET_ADDRESS = 'gs://speech-predictor-bucket/keras-job-dir/predict_lstm/'
+    print('Loading Model')
+    model = tf.keras.models.load_model(BUCKET_ADDRESS, compile=False)
+    print('Model Loaded')
+
 @app.route("/predict")
 def predict_word():
     text = request.headers['text']
@@ -17,8 +26,4 @@ def predict_word():
     }
 
 if __name__ == "__main__":
-    BUCKET_ADDRESS = 'gs://speech-predictor-bucket/keras-job-dir/predict_lstm/'
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
-    print('PREDICT_APP: Loading Model', flush=True)
-    model = tf.keras.models.load_model(BUCKET_ADDRESS, compile=False)
-    print('PREDICT_APP: Model Loaded', flush=True)
