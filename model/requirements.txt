@@ -58,7 +58,6 @@ tensorflow-gpu-estimator==2.3.0
 tensorflow-metadata==0.26.0
 termcolor==1.1.0
 tqdm==4.54.1
-trainer==0.1
 typing-extensions==3.7.4.3
 uritemplate==3.0.1
 urllib3==1.26.2

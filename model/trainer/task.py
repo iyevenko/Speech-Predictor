@@ -92,13 +92,10 @@ def train_and_evaluate(args):
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
     data_splits, tokenizer = input_fn(buffer_size=args.buffer_size, batch_size=args.batch_size,
-                                      data_path=args.data_path,
-                                      min_sentence_length=3, num_batches=args.num_batches,
-                                      vocabulary_size=args.vocab_size)
+                                      data_path=args.data_path, vocabulary_size=args.vocab_size)
 
     train_dataset = data_splits['train']
-    val_dataset = data_splits['val']
-    test_dataset = data_splits['test']
+    val_dataset = data_splits['test'] # ik this is bad naming
 
     lstm_model = LSTMModel(tokenizer, alpha=1, beta=0)
 
