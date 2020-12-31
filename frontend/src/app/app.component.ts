@@ -37,8 +37,8 @@ export class AppComponent {
   }
 
   public modelChange(str: string): void {
-    console.log('triggered')
-    if (str.substr(str.length - 1) == ' '){
+    console.log('triggered');
+    if (str.substr(str.length - 1) === ' '){
       this.textService.submitText(str).subscribe((response: any) => {
         console.log('Received: ' + response);
         this.responseText = response.response;
