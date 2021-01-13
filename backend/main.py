@@ -35,15 +35,15 @@ def next_word():
     }
     # response.headers.add('Access-Control-Allow-Origin', '*')
 
-@app.route('/rest/review-sentiment/')
-def review_sentiment():
-    """Return a friendly HTTP greeting."""
-    response, value = predict.get_sentiment(request.headers['text'])
-    print(response)
-    return {
-        'response': response,
-        'value': value
-    }
+# @app.route('/rest/review-sentiment/')
+# def review_sentiment():
+#     """Return a friendly HTTP greeting."""
+#     response, value = predict.get_sentiment(request.headers['text'])
+#     print(response)
+#     return {
+#         'response': response,
+#         'value': value
+#     }
 
 if __name__ == '__main__':
     # This is used when running locally only. When deploying to Google App

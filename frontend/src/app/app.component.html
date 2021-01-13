@@ -6,26 +6,35 @@
 
 <div class="container" style="text-align: center; position:relative; top:30%;">
 
-  <form class="example-form" (submit)="submitText()">
-    <mat-form-field class="example-full-width">
-      <mat-label></mat-label>
-      <input matInput autofocus
-             #textInput
-             autocomplete="off"
-             name="textInput"
-             [(ngModel)]="searchStr"
-             (ngModelChange)="modelChange($event)"
-             id="textInput"
-             placeholder="Predict next word..."
-             style="
-              /*width: 100%;*/
-              height: 70px;
-              font-size:50px;
-              /*vertical-align:9px;*/
-              color:#bbb" >
+    <form class="example-form" (submit)="submitText()">
+      <mat-form-field class="example-full-width">
+        <mat-label></mat-label>
+        <input matInput autofocus
+               #textInput
+               [matAutocomplete]="auto"
+               name="textInput"
+               [(ngModel)]="searchStr"
+               (ngModelChange)="modelChange($event)"
+               id="textInput"
+               placeholder="Predict next word..."
+               style="
+                /*width: 100%;*/
+                height: 70px;
+                font-size:50px;
+                /*vertical-align:9px;*/
+                color:#bbb" >
 
-    </mat-form-field>
-  </form>
+        <mat-autocomplete #auto="matAutocomplete">
+          <div *ngIf="options && options.length > 0">
+          <mat-option *ngFor="let option of options" [value]="option">
+            {{option}}
+          </mat-option>
+          </div>
+        </mat-autocomplete>
+
+      </mat-form-field>
+    </form>
+
 
   <h2 class="title" style="color: bisque">{{responseText}}</h2>
 

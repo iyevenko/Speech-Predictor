@@ -11,38 +11,50 @@ export class AppComponent {
   playerName;
   responseText;
   public searchStr = '';
+  options: string[];
 
   constructor(private textService: TextService) {
   this.playerName = '';
   this.responseText = '';
+  this.options = [];
+  console.log('options: ');
+  console.log(this.options);
+
   }
 
   @ViewChild('textInput') textInput: ElementRef | undefined;
 
   @HostListener('document:click', ['$event'])
 
-  documentClick(event: MouseEvent) {
-    console.log(this.searchStr);
-    if (!(this.textInput == undefined)){
-      this.textInput.nativeElement.select() as HTMLInputElement;
-    }
-  }
+  // documentClick(event: MouseEvent) {
+  //   console.log(this.searchStr);
+  //   if (!(this.textInput == undefined)){
+  //     this.textInput.nativeElement.select() as HTMLInputElement;
+  //   }
+  // }
 
-  submitText() {
-    console.log('Sent: ' + this.searchStr);
-    this.textService.submitText(this.searchStr).subscribe((response: any) => {
-      console.log('Received: ' + response);
-      this.responseText = response.value;
+submitText() {
+    let wordArray = this.searchStr.split(' ');
+    let sequence = wordArray.slice(-6).join(" ");
+    console.log('Sent: ' + sequence);
+    this.textService.submitText(sequence).subscribe((response: any) => {
+    this.options = response.response;
+      const index: number = this.options.indexOf("[UNK]");
+      if (index !== -1) {
+        this.options.splice(index, 1);
+      }
+      this.options = this.options.map(x => this.searchStr + x);
+
     });
   }
 
   public modelChange(str: string): void {
-    console.log('triggered');
     if (str.substr(str.length - 1) === ' '){
-      this.textService.submitText(str).subscribe((response: any) => {
-        console.log('Received: ' + response);
-        this.responseText = response.response;
-      });
+      this.submitText();
+      // this.textService.submitText(str).subscribe((response: any) => {
+      //   console.log('Received: ' + response);
+      //   this.responseText = response.response;
+      // });
     }
   }
 
