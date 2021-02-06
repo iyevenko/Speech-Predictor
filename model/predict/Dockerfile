@@ -5,11 +5,18 @@ FROM python:3.8-slim
 
 ENV PYTHONUNBUFFERED True
 
-ENV APP_HOME /app
+ENV APP_HOME /predict
 WORKDIR $APP_HOME
 COPY . ./
 
-RUN pip install Flask gunicorn tensorflow
+RUN pip install Flask flask_cors gunicorn tensorflow google-cloud-storage
+
+RUN mv setup.py ..
+WORKDIR ..
+RUN python3 setup.py build
+RUN python3 setup.py install
+RUN pip install predict
+WORKDIR $APP_HOME
 
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
 
